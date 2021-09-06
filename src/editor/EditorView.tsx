@@ -14,8 +14,11 @@ function isId(x: string): asserts x is Id{
   }
 }
 
+type Coordinate = number;
 interface Element{
-  id: Id
+  id: Id,
+  x: Coordinate,
+  y: Coordinate
 }
 
 const Elements = (props: {elements: Element[]}) => {
@@ -30,7 +33,9 @@ export const EditorView = () => {
   const [elements,setElements] = useState<Element[]>([])
   const addElement = useCallback(() => {
     const nextElement = {
-      id: generateId()
+      id: generateId(),
+      x: elements[elements.length-1].x + 10,
+      y: elements[elements.length-1].y + 10
     }
     setElements([...elements, nextElement])
   },[elements, setElements]);
