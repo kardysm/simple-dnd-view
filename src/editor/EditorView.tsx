@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { v4 as uuidv4, validate } from 'uuid'
 import styled from "styled-components";
 
@@ -17,6 +17,11 @@ function isId(x: string): asserts x is Id{
 }
 
 type Coordinate = number;
+
+interface ElementProps extends Element{
+  onClick: () => void
+  highlight?: boolean
+}
 interface Element extends Coordinates{
   id: Id
 }
@@ -26,25 +31,13 @@ interface Coordinates {
   y: Coordinate
 }
 
-const Draggable = styled.div<Coordinates>`
-  position: absolute;
-  left: ${props => props.x}px;
-  top: ${props => props.y}px;
-`
 
-const ElementView = styled.div`
-  width: 46px;
-  height: 46px;
-  background: cornflowerblue;
-  border: 4px #000 dashed;
-  overflow: hidden;
-`
+const Element = (props: ElementProps) => {
+  const {id,x,y, highlight, onClick} = props;
 
-const Element = (props: Element) => {
-  const {id,x,y} = props;
   return <Draggable x={x} y={y}>
     <figure>
-      <ElementView>element {id}</ElementView>
+      <ElementView highlight={highlight} onClick={onClick}>element {id}</ElementView>
     </figure>
   </Draggable>
 }
@@ -52,19 +45,36 @@ const Element = (props: Element) => {
 const Elements = (props: {elements: Element[]}) => {
   const {elements} = props;
 
+  const [focusedElement, setFocusedElement] = useState<Id | null>(null)
+
+  const setFocus = useCallback((id: Id) => {
+    if (focusedElement === id){
+      return setFocusedElement(null)
+    }
+    return setFocusedElement(id)
+  },[focusedElement])
+
+
   return <>{
-    elements.map(({id,x,y}, index) => <Element key={id} id={id} x={x} y={y}/>)
+    elements.map(({id,x,y}, index) => <Element
+      onClick={() => setFocus(id)}
+      highlight={focusedElement === id}
+      key={id}
+      id={id}
+      x={x}
+      y={y}
+    />)
   }</>
 
 }
-
 export const EditorView = () => {
+
   const [elements,setElements] = useState<Element[]>([])
   const addElement = useCallback(() => {
     const nextElement = {
       id: generateId(),
-      x: (elements[elements.length-1]?.x ?? 0)+ 10,
-      y: (elements[elements.length-1]?.y ?? 0)+ 10
+      x: (elements[elements.length-1]?.x ?? 0)+ 40,
+      y: (elements[elements.length-1]?.y ?? 0)+ 40
     }
     setElements([...elements, nextElement])
   },[elements, setElements]);
@@ -83,4 +93,18 @@ const Canvas = styled.div`
   right: 0;
   min-width: 200px;
   min-height: 200px;
+`
+
+const Draggable = styled.div<Coordinates>`
+  position: absolute;
+  left: ${props => props.x}px;
+  top: ${props => props.y}px;
+`
+
+const ElementView = styled.div<{ highlight?: boolean }>`
+  width: 46px;
+  height: 46px;
+  background: cornflowerblue;
+  border: 4px ${props => props.highlight ? `red solid` : `#000 dashed`};
+  overflow: hidden;
 `
