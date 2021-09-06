@@ -28,8 +28,8 @@ interface Coordinates {
 
 const Draggable = styled.div<Coordinates>`
   position: absolute;
-  left: ${props => props.x};
-  top: ${props => props.y};
+  left: ${props => props.x}px;
+  top: ${props => props.y}px;
 `
 
 const Element = (props: Element) => {
@@ -47,6 +47,7 @@ const Elements = (props: {elements: Element[]}) => {
   return <>{
     elements.map(({id,x,y}, index) => <Element key={id} id={id} x={x} y={y}/>)
   }</>
+
 }
 
 export const EditorView = () => {
@@ -54,8 +55,8 @@ export const EditorView = () => {
   const addElement = useCallback(() => {
     const nextElement = {
       id: generateId(),
-      x: elements[elements.length-1].x + 10,
-      y: elements[elements.length-1].y + 10
+      x: (elements[elements.length-1]?.x ?? 0)+ 10,
+      y: (elements[elements.length-1]?.y ?? 0)+ 10
     }
     setElements([...elements, nextElement])
   },[elements, setElements]);
@@ -67,5 +68,11 @@ export const EditorView = () => {
 }
 
 const Canvas = styled.div`
-  position: relative;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-width: 200px;
+  min-height: 200px;
 `
