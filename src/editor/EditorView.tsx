@@ -34,7 +34,11 @@ const Draggable = styled.div<Coordinates>`
 
 const Element = (props: Element) => {
   const {id,x,y} = props;
-  return <figure><span>element {id}</span></figure>
+  return <Draggable x={x} y={y}>
+    <figure>
+      <span>element {id}</span>
+    </figure>
+  </Draggable>
 }
 
 const Elements = (props: {elements: Element[]}) => {
