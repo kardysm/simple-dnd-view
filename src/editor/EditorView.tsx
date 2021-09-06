@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react"
 import { v4 as uuidv4, validate } from 'uuid'
+import styled from "styled-components";
+
 
 type Id = string & {readonly type: symbol}
 
@@ -40,8 +42,12 @@ export const EditorView = () => {
     setElements([...elements, nextElement])
   },[elements, setElements]);
 
-  return <>
+  return <Canvas>
     <button onClick={addElement}>Add</button>
     <Elements elements={elements}/>
-  </>
+  </Canvas>
 }
+
+const Canvas = styled.div`
+  position: relative;
+`
