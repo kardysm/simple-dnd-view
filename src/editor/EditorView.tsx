@@ -1,3 +1,4 @@
 export const EditorView = () => {
-  return ''
+  return <>
+  </>
 }
