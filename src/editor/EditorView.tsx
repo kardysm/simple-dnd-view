@@ -32,11 +32,19 @@ const Draggable = styled.div<Coordinates>`
   top: ${props => props.y}px;
 `
 
+const ElementView = styled.div`
+  width: 46px;
+  height: 46px;
+  background: cornflowerblue;
+  border: 4px #000 dashed;
+  overflow: hidden;
+`
+
 const Element = (props: Element) => {
   const {id,x,y} = props;
   return <Draggable x={x} y={y}>
     <figure>
-      <span>element {id}</span>
+      <ElementView>element {id}</ElementView>
     </figure>
   </Draggable>
 }
