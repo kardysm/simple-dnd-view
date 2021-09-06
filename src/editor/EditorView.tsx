@@ -17,17 +17,31 @@ function isId(x: string): asserts x is Id{
 }
 
 type Coordinate = number;
-interface Element{
-  id: Id,
+interface Element extends Coordinates{
+  id: Id
+}
+
+interface Coordinates {
   x: Coordinate,
   y: Coordinate
+}
+
+const Draggable = styled.div<Coordinates>`
+  position: absolute;
+  left: ${props => props.x};
+  top: ${props => props.y};
+`
+
+const Element = (props: Element) => {
+  const {id,x,y} = props;
+  return <figure><span>element {id}</span></figure>
 }
 
 const Elements = (props: {elements: Element[]}) => {
   const {elements} = props;
 
   return <>{
-    elements.map((el, index) => <figure><span>element {el.id}</span></figure>)
+    elements.map(({id,x,y}, index) => <Element key={id} id={id} x={x} y={y}/>)
   }</>
 }
 
