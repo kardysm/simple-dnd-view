@@ -31,13 +31,41 @@ interface Coordinates {
   y: Coordinate
 }
 
+enum DragStatus {
+  INACTIVE,
+  ACTIVE
+}
 
 const Element = (props: ElementProps) => {
   const {id,x,y, highlight, onClick} = props;
 
-  return <Draggable x={x} y={y}>
+  const [newX, setNewX] = useState(x);
+  const [newY, setNewY] = useState(y);
+  const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
+  const handleDragStart = useCallback(() => {
+    setDragStatus(DragStatus.ACTIVE)
+    console.log('set active')
+  },[id])
+  const handleDragMove = useCallback((event: MouseEvent) => {
+    if (dragStatus !== DragStatus.ACTIVE){
+      return
+    }
+    console.log(event)
+    //update delta
+    // setNewX(delta => delta + event.movementX)
+    // setNewY(delta => delta + event.movementY)
+    setNewX(event.clientX)
+    setNewY(event.clientY)
+  },[newX, newY, id,dragStatus])
+  const handleDragEnd = useCallback(() => {
+    //persist position
+    //reset delta
+    console.log('set inactive')
+    setDragStatus(DragStatus.INACTIVE)
+  }, [id])
+  return <Draggable key={id} x={newX} y={newY} onMouseDown={handleDragStart} onMouseUp={handleDragEnd} onMouseMove={handleDragMove as any}>
     <figure>
-      <ElementView highlight={highlight} onClick={onClick}>element {id}</ElementView>
+      <ElementView highlight={highlight} onClick={onClick}/>
     </figure>
   </Draggable>
 }
