@@ -42,6 +42,10 @@ interface Coordinates {
   y: Coordinate
 }
 
+interface Active {
+  active?: boolean
+}
+
 enum DragStatus {
   INACTIVE,
   ACTIVE
@@ -52,6 +56,7 @@ function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is P
     throw new Error('Provider DragRefProvider provider is not present')
   }
 }
+const isNativeDrag = (event: DragEvent) => event.isTrusted
 
 const Element = (props: ElementProps) => {
   const {id,x,y, highlight, onClick} = props;
@@ -60,42 +65,39 @@ const Element = (props: ElementProps) => {
   const [newY, setNewY] = useState(y);
 
   const draggableRef = useRef<HTMLDivElement>()
-  const lastMeaningfulEvent = useRef<HTMLDivElement>()
+  const lastMeaningfulEvent = useRef<DragEvent>()
   const dragContext = useContext(DragRefProvider)
   existsDragRefProvider(dragContext);
   const {setActive: setActiveDraggable} = dragContext;
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
   const handleDragStart = useCallback(() => {
-    setDragStatus(DragStatus.ACTIVE)
-
     setActiveDraggable(draggableRef)
-    console.log('set active')
-  },[id])
-  const handleDragMove = useCallback((event: MouseEvent) => {
-    if (dragStatus !== DragStatus.ACTIVE){
+  },[setActiveDraggable])
+
+  const handleDragMove = useCallback((event: DragEvent) => {
+    if (isNativeDrag(event)){
       return
     }
-    console.log(event)
-    if (event.pageX && event.pageY)
-    //update delta
-    // setNewX(delta => delta + event.movementX)
-    // setNewY(delta => delta + event.movementY)
-    // setNewX(event.clientX)
-    // setNewY(event.clientY)
-  },[newX, newY, id,dragStatus])
-  const handleDragEnd = useCallback((e: any) => {
-    //persist position
-    //reset delta
-    console.log('set inactive', e)
-    setActiveDraggable(undefined)
+    setDragStatus(DragStatus.ACTIVE)
+    lastMeaningfulEvent.current = event;
 
-    setNewX(e.pageX)
-    setNewY(e.pageY)
+  },[])
+  const handleDragEnd = useCallback((e: any) => {
+    const persistPosition = () => {
+      const dragEvent = lastMeaningfulEvent.current
+
+      setNewX((dragEvent ?? e).pageX)
+      setNewY((dragEvent ?? e).pageY)
+    }
+
+    persistPosition();
+
     setDragStatus(DragStatus.INACTIVE)
-  }, [id])
+  }, [])
   return <Draggable
     ref={(instance) => draggableRef.current = instance!}
     draggable
+    active={dragStatus === DragStatus.ACTIVE}
     key={id} x={newX} y={newY} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
     <figure>
       <ElementView highlight={highlight} onClick={onClick}/>
@@ -150,7 +152,7 @@ export const EditorView = () => {
     if (!activeElement.current){
       return;
     }
-    console.log(activeElement)
+
     activeElement.current?.dispatchEvent?.(forgeDragEvent(event))
     event.preventDefault();
   },[activeElement])
@@ -195,10 +197,11 @@ const Canvas = styled.div`
   min-height: 200px;
 `
 
-const Draggable = styled.div<Coordinates>`
+const Draggable = styled.div<Coordinates & Active>`
   position: absolute;
   left: ${props => props.x}px;
   top: ${props => props.y}px;
+  opacity: ${props => props.active ? '0' : 'unset'};
 `
 
 const ElementView = styled.div<{ highlight?: boolean }>`
