@@ -1,20 +1,21 @@
-import {ElementData} from "../../hooks";
+import {ElementData, useGuardedContext} from "../../hooks";
 import React, {useCallback, useState} from "react";
 import {Id} from "../../../utils";
 import {Element} from "../Element";
+import {FocusContext} from "../../contexts";
 
 const useFocus = () => {
-  const [focusedElement, setFocusedElement] = useState<Id | null>(null)
+  const {focused, setFocused} = useGuardedContext(FocusContext)
 
   const setFocus = useCallback((id: Id) => {
-    if (focusedElement === id){
-      return setFocusedElement(null)
+    if (focused === id){
+      return setFocused(null)
     }
-    return setFocusedElement(id)
-  },[focusedElement])
+    return setFocused(id)
+  },[focused, setFocused])
 
   return {
-    focusedElement,
+    focusedElement: focused,
     setFocus
   }
 }
