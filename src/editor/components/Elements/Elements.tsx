@@ -3,9 +3,7 @@ import React, {useCallback, useState} from "react";
 import {Id} from "../../../utils";
 import {Element} from "../Element";
 
-export const Elements = (props: {elements: ElementData[]}) => {
-  const {elements} = props;
-
+const useFocus = () => {
   const [focusedElement, setFocusedElement] = useState<Id | null>(null)
 
   const setFocus = useCallback((id: Id) => {
@@ -15,7 +13,15 @@ export const Elements = (props: {elements: ElementData[]}) => {
     return setFocusedElement(id)
   },[focusedElement])
 
+  return {
+    focusedElement,
+    setFocus
+  }
+}
+export const Elements = (props: {elements: ElementData[]}) => {
+  const {elements} = props;
 
+  const {setFocus, focusedElement} = useFocus()
   return <>{
     elements.map(({id,initialX,initialY}, index) => <Element
       onClick={() => setFocus(id)}
