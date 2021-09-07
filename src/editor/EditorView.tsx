@@ -1,26 +1,10 @@
 import React, {
   useCallback, useState
 } from "react"
-import styled from "styled-components";
 import {Id} from "../utils";
 import {DragCanvas} from "./components/DragCanvas";
 import {ElementData, useElements} from "./hooks";
-import {Draggable} from "./components/Draggable";
-
-interface ElementProps extends ElementData{
-  onClick: () => void
-  highlight?: boolean
-}
-
-const Element = (props: ElementProps) => {
-  const {initialX,initialY, highlight, onClick} = props;
-
-  return <Draggable initialX={initialX} initialY={initialY}>
-    <figure>
-      <ElementView highlight={highlight} onClick={onClick}/>
-    </figure>
-  </Draggable>
-}
+import {Element} from './components/Element'
 
 const Elements = (props: {elements: ElementData[]}) => {
   const {elements} = props;
@@ -58,10 +42,3 @@ export const EditorView = () => {
   </DragCanvas>
 }
 
-const ElementView = styled.div<{ highlight?: boolean }>`
-  width: 46px;
-  height: 46px;
-  background: cornflowerblue;
-  border: 4px ${props => props.highlight ? `red solid` : `#000 dashed`};
-  overflow: hidden;
-`
