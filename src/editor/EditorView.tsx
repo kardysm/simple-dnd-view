@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useState } from "react"
+import React, {
+  createContext,
+  DragEventHandler,
+  FC,
+  MutableRefObject, PropsWithChildren,
+  ReactChildren, ReactElement, RefObject,
+  useCallback, useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react"
 import { v4 as uuidv4, validate } from 'uuid'
 import styled from "styled-components";
 
@@ -41,9 +51,17 @@ const Element = (props: ElementProps) => {
 
   const [newX, setNewX] = useState(x);
   const [newY, setNewY] = useState(y);
+
+  const draggableRef = useRef<HTMLDivElement>(null)
+  const activeDragRef = useContext(DragRefProvider)
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
   const handleDragStart = useCallback(() => {
     setDragStatus(DragStatus.ACTIVE)
+
+    if (!activeDragRef || draggableRef.current === null){
+      return
+    }
+    activeDragRef.current = draggableRef.current
     console.log('set active')
   },[id])
   const handleDragMove = useCallback((event: MouseEvent) => {
@@ -54,16 +72,25 @@ const Element = (props: ElementProps) => {
     //update delta
     // setNewX(delta => delta + event.movementX)
     // setNewY(delta => delta + event.movementY)
-    setNewX(event.clientX)
-    setNewY(event.clientY)
+    // setNewX(event.clientX)
+    // setNewY(event.clientY)
   },[newX, newY, id,dragStatus])
-  const handleDragEnd = useCallback(() => {
+  const handleDragEnd = useCallback((e: any) => {
     //persist position
     //reset delta
-    console.log('set inactive')
+    console.log('set inactive', e)
+    if (!activeDragRef){
+      return;
+    }
+    activeDragRef.current = undefined
+    setNewX(e.screenX)
+    setNewY(e.screenY)
     setDragStatus(DragStatus.INACTIVE)
   }, [id])
-  return <Draggable key={id} x={newX} y={newY} onMouseDown={handleDragStart} onMouseUp={handleDragEnd} onMouseMove={handleDragMove as any}>
+  return <Draggable
+    ref={draggableRef}
+    draggable
+    key={id} x={newX} y={newY} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
     <figure>
       <ElementView highlight={highlight} onClick={onClick}/>
     </figure>
@@ -107,10 +134,31 @@ export const EditorView = () => {
     setElements([...elements, nextElement])
   },[elements, setElements]);
 
-  return <Canvas>
+  const draggedRef = useRef<HTMLDivElement>();
+
+  const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!draggedRef.current){
+      return;
+    }
+    draggedRef.current?.dispatchEvent(new MouseEvent('drag', event as unknown as MouseEventInit))
+    event.preventDefault();
+  },[draggedRef])
+
+  return <Canvas onDragOver={dispatchDragPosition}>
     <button onClick={addElement}>Add</button>
-    <Elements elements={elements}/>
+    <DragProvider dragRef={draggedRef}>
+      <Elements elements={elements}/>
+    </DragProvider>
   </Canvas>
+}
+
+type DragRef = MutableRefObject<HTMLDivElement|undefined>
+const DragRefProvider = createContext<DragRef | undefined>(undefined)
+interface DragProviderProps{
+  dragRef: DragRef
+}
+const DragProvider = (props: PropsWithChildren<DragProviderProps>) => {
+  return <DragRefProvider.Provider value={props.dragRef}>{props.children}</DragRefProvider.Provider>
 }
 
 const Canvas = styled.div`
