@@ -6,7 +6,7 @@ import React, {
 import styled from "styled-components";
 import {generateId, Id} from "../utils";
 import {ReactDragEvent} from "./components/helpers";
-import {useDragContext} from "./components/DragContext";
+import {useDragContext} from "./components/DragProvider";
 import {DragCanvas} from "./components/DragCanvas";
 
 type Coordinate = number;

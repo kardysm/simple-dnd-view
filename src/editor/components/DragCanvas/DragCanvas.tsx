@@ -1,7 +1,7 @@
 import React, {DragEventHandler, PropsWithChildren, useCallback, useRef} from "react";
 import styled from "styled-components";
 import {forgeDragEvent} from "../../../utils";
-import {DragProvider} from "../DragContext";
+import {DragProvider} from "../DragProvider";
 import {DragRef, ReactDragEvent} from "../helpers";
 
 export const DragCanvas = (props: PropsWithChildren<{}>) => {
