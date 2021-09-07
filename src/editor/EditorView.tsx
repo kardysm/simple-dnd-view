@@ -176,11 +176,16 @@ export const EditorView = () => {
   </DragCanvas>
 }
 
-const DragCanvas = (props: PropsWithChildren<{}>) => {
-  const activeElement = useRef<HTMLDivElement>();
-  const setActiveElement = useCallback((ref: DragRef | undefined) => {
-    activeElement.current = ref?.current
+const useRefWithSetter = () => {
+  const ref = useRef<HTMLDivElement>();
+  const setRef = useCallback((refToSet: DragRef | undefined) => {
+    ref.current = refToSet?.current
   },[])
+
+  return {ref, setRef}
+}
+const DragCanvas = (props: PropsWithChildren<{}>) => {
+  const {ref: activeElement, setRef: setActiveElement} = useRefWithSetter()
 
   const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: React.DragEvent<HTMLDivElement>) => {
       if (!activeElement.current){
@@ -198,6 +203,8 @@ const DragCanvas = (props: PropsWithChildren<{}>) => {
   </Canvas>
 }
 
+// Firefox drag event deos not contain pageX/Y data,
+// and it is sourced as mouse click here
 function forgeDragEvent(event: React.DragEvent<HTMLDivElement>) {
   return new MouseEvent('drag', event as unknown as MouseEventInit)
 }
