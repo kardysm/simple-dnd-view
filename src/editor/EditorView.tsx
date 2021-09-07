@@ -203,6 +203,9 @@ const Draggable = styled.div<Coordinates & Active>`
   left: ${props => props.x}px;
   top: ${props => props.y}px;
   opacity: ${props => props.active ? '0' : 'unset'};
+  & figure {
+    margin: 0;
+  }
 `
 
 const ElementView = styled.div<{ highlight?: boolean }>`
