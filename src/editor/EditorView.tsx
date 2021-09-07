@@ -29,12 +29,14 @@ function isId(x: string): asserts x is Id{
 
 type Coordinate = number;
 
-interface ElementProps extends Element{
+interface ElementProps extends ElementData{
   onClick: () => void
   highlight?: boolean
 }
-interface Element extends Coordinates{
-  id: Id
+interface ElementData {
+  id: Id,
+  initialX: Coordinate,
+  initialY: Coordinate
 }
 
 interface Coordinates {
@@ -59,10 +61,17 @@ function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is P
 const isNativeDrag = (event: DragEvent) => event.isTrusted
 
 const Element = (props: ElementProps) => {
-  const {id,x,y, highlight, onClick} = props;
+  const {id,initialX,initialY, highlight, onClick} = props;
 
-  const [newX, setNewX] = useState(x);
-  const [newY, setNewY] = useState(y);
+  const [position, setPosition] = useState<Coordinates>({
+    x: initialX,
+    y: initialY
+  })
+
+  const [dragOffset, setDragOffset] = useState<Coordinates>({
+    x: 0,
+    y: 0
+  })
 
   const draggableRef = useRef<HTMLDivElement>()
   const lastMeaningfulEvent = useRef<DragEvent>()
@@ -71,10 +80,15 @@ const Element = (props: ElementProps) => {
   const {setActive: setActiveDraggable} = dragContext;
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
 
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     setActiveDraggable(draggableRef)
     requestAnimationFrame(() => setDragStatus(DragStatus.ACTIVE))
-  },[setActiveDraggable])
+
+    setDragOffset({
+      x: e.pageX - position.x,
+      y: e.pageY - position.y
+    })
+  },[position, setActiveDraggable])
 
   const handleDragMove = useCallback((event: DragEvent) => {
     if (isNativeDrag(event)){
@@ -86,27 +100,31 @@ const Element = (props: ElementProps) => {
   const handleDragEnd = useCallback((e: any) => {
     const persistPosition = () => {
       const dragEvent = lastMeaningfulEvent.current
+      console.log(e, dragEvent)
 
-      setNewX((dragEvent ?? e).pageX)
-      setNewY((dragEvent ?? e).pageY)
+      setPosition({
+      x: (dragEvent ?? e).pageX - dragOffset.x,
+        y: (dragEvent ?? e).pageY - dragOffset.y
+    })
     }
 
     persistPosition();
 
     setDragStatus(DragStatus.INACTIVE)
-  }, [])
+  }, [dragOffset])
+
   return <Draggable
     ref={(instance) => draggableRef.current = instance!}
     draggable
     active={dragStatus === DragStatus.ACTIVE}
-    key={id} x={newX} y={newY} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
+    key={id} x={position.x} y={position.y} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
     <figure>
       <ElementView highlight={highlight} onClick={onClick}/>
     </figure>
   </Draggable>
 }
 
-const Elements = (props: {elements: Element[]}) => {
+const Elements = (props: {elements: ElementData[]}) => {
   const {elements} = props;
 
   const [focusedElement, setFocusedElement] = useState<Id | null>(null)
@@ -120,25 +138,25 @@ const Elements = (props: {elements: Element[]}) => {
 
 
   return <>{
-    elements.map(({id,x,y}, index) => <Element
+    elements.map(({id,initialX,initialY}, index) => <Element
       onClick={() => setFocus(id)}
       highlight={focusedElement === id}
       key={id}
       id={id}
-      x={x}
-      y={y}
+      initialX={initialX}
+      initialY={initialY}
     />)
   }</>
 
 }
 export const EditorView = () => {
 
-  const [elements,setElements] = useState<Element[]>([])
+  const [elements,setElements] = useState<ElementData[]>([])
   const addElement = useCallback(() => {
     const nextElement = {
       id: generateId(),
-      x: (elements[elements.length-1]?.x ?? 0)+ 40,
-      y: (elements[elements.length-1]?.y ?? 0)+ 40
+      initialX: (elements[elements.length-1]?.initialX ?? 0)+ 40,
+      initialY: (elements[elements.length-1]?.initialY ?? 0)+ 40
     }
     setElements([...elements, nextElement])
   },[elements, setElements]);
