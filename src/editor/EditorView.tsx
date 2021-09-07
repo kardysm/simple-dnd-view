@@ -3,19 +3,14 @@ import React, {
   useCallback, useState
 } from "react"
 import styled from "styled-components";
-import {generateId, Id} from "../utils";
+import {Id} from "../utils";
 import {DragCanvas} from "./components/DragCanvas";
-import {Coordinate, Coordinates} from "./helperTypes";
-import {DragStatus, useDrag} from "./hooks";
+import {Coordinates} from "./helperTypes";
+import {DragStatus, ElementData, useDrag, useElements} from "./hooks";
 
 interface ElementProps extends ElementData{
   onClick: () => void
   highlight?: boolean
-}
-interface ElementData {
-  id: Id,
-  initialX: Coordinate,
-  initialY: Coordinate
 }
 
 
@@ -88,27 +83,7 @@ const Elements = (props: {elements: ElementData[]}) => {
 
 }
 
-const INITIAL_OFFSET = 40;
 
-function createElement(elements: ElementData[]){
-  const lastEl = elements[elements.length-1];
-  return {
-    id: generateId(),
-    initialX: (lastEl?.initialX ?? 0)+ INITIAL_OFFSET,
-    initialY: (lastEl?.initialY ?? 0)+ INITIAL_OFFSET
-  }
-}
-
-const useElements = () => {
-  const [elements,setElements] = useState<ElementData[]>([])
-
-  const addElement = useCallback(() => {
-    const nextElement = createElement(elements)
-    setElements([...elements, nextElement])
-  },[elements, setElements]);
-
-  return {elements, addElement}
-}
 export const EditorView = () => {
   const {elements, addElement} = useElements();
 
@@ -117,9 +92,6 @@ export const EditorView = () => {
       <Elements elements={elements}/>
   </DragCanvas>
 }
-
-
-
 
 const DraggableDiv = styled.div<Coordinates & Active>`
   position: absolute;
