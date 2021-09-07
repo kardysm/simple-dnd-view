@@ -43,25 +43,25 @@ function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is P
 }
 const isNativeDrag = (event: DragEvent) => event.isTrusted
 
-const Element = (props: ElementProps) => {
-  const {id,initialX,initialY, highlight, onClick} = props;
+const useDragContext = () => {
+  const dragContext = useContext(DragRefProvider)
 
-  const [position, setPosition] = useState<Coordinates>({
-    x: initialX,
-    y: initialY
-  })
+  existsDragRefProvider(dragContext);
 
+  return dragContext;
+
+}
+const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates) => void) => {
   const [dragOffset, setDragOffset] = useState<Coordinates>({
     x: 0,
     y: 0
   })
+  const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
 
   const draggableRef = useRef<HTMLDivElement>()
   const lastMeaningfulEvent = useRef<DragEvent>()
-  const dragContext = useContext(DragRefProvider)
-  existsDragRefProvider(dragContext);
-  const {setActive: setActiveDraggable} = dragContext;
-  const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
+
+  const {setActive: setActiveDraggable} = useDragContext();
 
   const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     setActiveDraggable(draggableRef)
@@ -80,21 +80,46 @@ const Element = (props: ElementProps) => {
     lastMeaningfulEvent.current = event;
 
   },[])
+
   const handleDragEnd = useCallback((e: any) => {
     const persistPosition = () => {
+      //catch last drag event - to overcome Firefox issue, see: forgeDragEvent
       const dragEvent = lastMeaningfulEvent.current
-      console.log(e, dragEvent)
 
       setPosition({
-      x: (dragEvent ?? e).pageX - dragOffset.x,
+        x: (dragEvent ?? e).pageX - dragOffset.x,
         y: (dragEvent ?? e).pageY - dragOffset.y
-    })
+      })
     }
 
     persistPosition();
-
     setDragStatus(DragStatus.INACTIVE)
-  }, [dragOffset])
+  }, [dragOffset.x, dragOffset.y, setPosition])
+
+  return {
+    dragStatus,
+    draggableRef,
+    handleDragStart,
+    handleDragMove,
+    handleDragEnd,
+  }
+}
+
+const Element = (props: ElementProps) => {
+  const {id,initialX,initialY, highlight, onClick} = props;
+
+  const [position, setPosition] = useState<Coordinates>({
+    x: initialX,
+    y: initialY
+  })
+
+  const {
+    draggableRef,
+    dragStatus,
+    handleDragStart,
+    handleDragMove,
+    handleDragEnd
+  } = useDrag(position,setPosition)
 
   return <Draggable
     ref={(instance) => draggableRef.current = instance!}
