@@ -41,7 +41,10 @@ function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is P
     throw new Error('Provider DragRefProvider provider is not present')
   }
 }
-const isNativeDrag = (event: DragEvent) => event.isTrusted
+
+type ReactDragEvent = React.DragEvent<HTMLDivElement>;
+
+const isNativeDrag = (event: ReactDragEvent) => event.isTrusted
 
 const useDragContext = () => {
   const dragContext = useContext(DragRefProvider)
@@ -59,11 +62,11 @@ const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates) => vo
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
 
   const draggableRef = useRef<HTMLDivElement>()
-  const lastMeaningfulEvent = useRef<DragEvent>()
+  const lastMeaningfulEvent = useRef<ReactDragEvent>()
 
   const {setActive: setActiveDraggable} = useDragContext();
 
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragStart = useCallback((e: ReactDragEvent) => {
     setActiveDraggable(draggableRef)
     requestAnimationFrame(() => setDragStatus(DragStatus.ACTIVE))
 
@@ -73,7 +76,7 @@ const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates) => vo
     })
   },[position, setActiveDraggable])
 
-  const handleDragMove = useCallback((event: DragEvent) => {
+  const handleDragMove = useCallback((event: ReactDragEvent) => {
     if (isNativeDrag(event)){
       return
     }
@@ -105,9 +108,8 @@ const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates) => vo
   }
 }
 
-const Element = (props: ElementProps) => {
-  const {id,initialX,initialY, highlight, onClick} = props;
-
+const Draggable = (props: PropsWithChildren<Omit<ElementData,'id'>>) => {
+  const {initialX,initialY,children} = props
   const [position, setPosition] = useState<Coordinates>({
     x: initialX,
     y: initialY
@@ -121,11 +123,24 @@ const Element = (props: ElementProps) => {
     handleDragEnd
   } = useDrag(position,setPosition)
 
-  return <Draggable
+  return <DraggableDiv
     ref={(instance) => draggableRef.current = instance!}
     draggable
     active={dragStatus === DragStatus.ACTIVE}
-    key={id} x={position.x} y={position.y} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
+    x={position.x}
+    y={position.y}
+    onDragStart={handleDragStart}
+    onDragEnd={handleDragEnd}
+    onDrag={handleDragMove}
+  >
+    {children}
+  </DraggableDiv>
+}
+
+const Element = (props: ElementProps) => {
+  const {initialX,initialY, highlight, onClick} = props;
+
+  return <Draggable initialX={initialX} initialY={initialY}>
     <figure>
       <ElementView highlight={highlight} onClick={onClick}/>
     </figure>
@@ -196,7 +211,7 @@ const useRefWithSetter = () => {
 const DragCanvas = (props: PropsWithChildren<{}>) => {
   const {ref: activeElement, setRef: setActiveElement} = useRefWithSetter()
 
-  const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+  const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: ReactDragEvent) => {
       if (!activeElement.current){
         return;
       }
@@ -214,7 +229,7 @@ const DragCanvas = (props: PropsWithChildren<{}>) => {
 
 // Firefox drag event deos not contain pageX/Y data,
 // and it is sourced as mouse click here
-function forgeDragEvent(event: React.DragEvent<HTMLDivElement>) {
+function forgeDragEvent(event: ReactDragEvent) {
   return new MouseEvent('drag', event as unknown as MouseEventInit)
 }
 
@@ -249,7 +264,7 @@ const Canvas = styled.div`
   min-height: 200px;
 `
 
-const Draggable = styled.div<Coordinates & Active>`
+const DraggableDiv = styled.div<Coordinates & Active>`
   position: absolute;
   left: ${props => props.x}px;
   top: ${props => props.y}px;
