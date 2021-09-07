@@ -1,17 +1,14 @@
 import React, {
   createContext,
   DragEventHandler,
-  FC,
   MutableRefObject, PropsWithChildren,
-  ReactChildren, ReactElement, RefObject,
   useCallback, useContext,
-  useEffect, useMemo,
+  useMemo,
   useRef,
   useState
 } from "react"
 import { v4 as uuidv4, validate } from 'uuid'
 import styled from "styled-components";
-import {pipeline} from "stream";
 
 
 type Id = string & {readonly type: symbol}
@@ -224,7 +221,10 @@ const DragProvider = (props: PropsWithChildren<DragProviderProps>) => {
     active: props.activeElementRef,
     setActive: props.setActiveElement
   }),[props.activeElementRef,props.setActiveElement])
-  return <DragRefProvider.Provider value={providerValue}>{props.children}</DragRefProvider.Provider>
+
+  return <DragRefProvider.Provider value={providerValue}>{
+    props.children
+  }</DragRefProvider.Provider>
 }
 
 const Canvas = styled.div`
