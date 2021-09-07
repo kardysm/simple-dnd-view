@@ -1,4 +1,4 @@
-import {DragContext, ProviderValue} from "../contexts/DragContext";
+import {DragContext, ProviderValue} from "../contexts";
 import {useContext} from "react";
 
 export const useDragContext = () => {

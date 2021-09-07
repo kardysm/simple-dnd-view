@@ -1,5 +1,5 @@
 import {createContext} from "react";
-import {DragRef} from "../components/helpers";
+import {DragRef} from "../helperTypes";
 
 export interface ProviderValue {
   active: DragRef,

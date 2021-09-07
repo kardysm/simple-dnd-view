@@ -2,7 +2,7 @@ import React, {DragEventHandler, PropsWithChildren, useCallback, useRef} from "r
 import styled from "styled-components";
 import {forgeDragEvent} from "../../../utils";
 import {DragProvider} from "../DragProvider";
-import {DragRef, ReactDragEvent} from "../helpers";
+import {DragRef, ReactDragEvent} from "../../helperTypes";
 
 export const DragCanvas = (props: PropsWithChildren<{}>) => {
   const {ref: activeElement, setRef: setActiveElement} = useRefWithSetter()

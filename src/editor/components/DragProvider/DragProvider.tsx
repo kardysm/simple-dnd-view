@@ -1,6 +1,6 @@
 import React, {PropsWithChildren, useMemo} from "react";
-import {DragContext} from "../../contexts/DragContext";
-import {DragRef} from "../helpers";
+import {DragContext} from "../../contexts";
+import {DragRef} from "../../helperTypes";
 
 interface DragProviderProps{
   activeElementRef: DragRef,

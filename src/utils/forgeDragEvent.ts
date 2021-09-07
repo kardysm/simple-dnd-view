@@ -1,4 +1,4 @@
-import {ReactDragEvent} from "../editor/components/helpers";
+import {ReactDragEvent} from "../editor/helperTypes";
 
 // Firefox drag event deos not contain pageX/Y data,
 // and it is sourced as mouse click here
