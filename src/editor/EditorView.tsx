@@ -70,15 +70,16 @@ const Element = (props: ElementProps) => {
   existsDragRefProvider(dragContext);
   const {setActive: setActiveDraggable} = dragContext;
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
+
   const handleDragStart = useCallback(() => {
     setActiveDraggable(draggableRef)
+    requestAnimationFrame(() => setDragStatus(DragStatus.ACTIVE))
   },[setActiveDraggable])
 
   const handleDragMove = useCallback((event: DragEvent) => {
     if (isNativeDrag(event)){
       return
     }
-    setDragStatus(DragStatus.ACTIVE)
     lastMeaningfulEvent.current = event;
 
   },[])
