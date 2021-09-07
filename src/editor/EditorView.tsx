@@ -1,14 +1,13 @@
 import React, {
-  createContext,
-  DragEventHandler,
-  MutableRefObject, PropsWithChildren,
-  useCallback, useContext,
-  useMemo,
-  useRef,
+  PropsWithChildren,
+  useCallback, useRef,
   useState
 } from "react"
 import styled from "styled-components";
 import {generateId, Id} from "../utils";
+import {ReactDragEvent} from "./components/helpers";
+import {useDragContext} from "./components/DragContext";
+import {DragCanvas} from "./components/DragCanvas";
 
 type Coordinate = number;
 
@@ -36,24 +35,8 @@ enum DragStatus {
   ACTIVE
 }
 
-function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is ProviderValue {
-  if (!ctx){
-    throw new Error('Provider DragRefProvider provider is not present')
-  }
-}
-
-type ReactDragEvent = React.DragEvent<HTMLDivElement>;
-
 const isNativeDrag = (event: ReactDragEvent) => event.isTrusted
 
-const useDragContext = () => {
-  const dragContext = useContext(DragRefProvider)
-
-  existsDragRefProvider(dragContext);
-
-  return dragContext;
-
-}
 const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates) => void) => {
   const [dragOffset, setDragOffset] = useState<Coordinates>({
     x: 0,
@@ -173,17 +156,20 @@ const Elements = (props: {elements: ElementData[]}) => {
 
 }
 
+const INITIAL_OFFSET = 40;
+
 function createElement(elements: ElementData[]){
   const lastEl = elements[elements.length-1];
   return {
     id: generateId(),
-    initialX: (lastEl?.initialX ?? 0)+ 40,
-    initialY: (lastEl?.initialY ?? 0)+ 40
+    initialX: (lastEl?.initialX ?? 0)+ INITIAL_OFFSET,
+    initialY: (lastEl?.initialY ?? 0)+ INITIAL_OFFSET
   }
 }
 
 const useElements = () => {
   const [elements,setElements] = useState<ElementData[]>([])
+
   const addElement = useCallback(() => {
     const nextElement = createElement(elements)
     setElements([...elements, nextElement])
@@ -200,69 +186,8 @@ export const EditorView = () => {
   </DragCanvas>
 }
 
-const useRefWithSetter = () => {
-  const ref = useRef<HTMLDivElement>();
-  const setRef = useCallback((refToSet: DragRef | undefined) => {
-    ref.current = refToSet?.current
-  },[])
 
-  return {ref, setRef}
-}
-const DragCanvas = (props: PropsWithChildren<{}>) => {
-  const {ref: activeElement, setRef: setActiveElement} = useRefWithSetter()
 
-  const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: ReactDragEvent) => {
-      if (!activeElement.current){
-        return;
-      }
-
-      activeElement.current?.dispatchEvent?.(forgeDragEvent(event))
-      event.preventDefault();
-    },[activeElement])
-
-  return <Canvas onDragOver={dispatchDragPosition}>
-    <DragProvider activeElementRef={activeElement} setActiveElement={setActiveElement}>
-      {props.children}
-    </DragProvider>
-  </Canvas>
-}
-
-// Firefox drag event deos not contain pageX/Y data,
-// and it is sourced as mouse click here
-function forgeDragEvent(event: ReactDragEvent) {
-  return new MouseEvent('drag', event as unknown as MouseEventInit)
-}
-
-type DragRef = MutableRefObject<HTMLDivElement|undefined>
-interface ProviderValue {
-  active: DragRef,
-  setActive: (el: DragRef | undefined) => void
-}
-const DragRefProvider = createContext<ProviderValue | undefined>(undefined)
-interface DragProviderProps{
-  activeElementRef: DragRef,
-  setActiveElement: (el: DragRef | undefined) => void
-}
-const DragProvider = (props: PropsWithChildren<DragProviderProps>) => {
-  const providerValue = useMemo(() => ({
-    active: props.activeElementRef,
-    setActive: props.setActiveElement
-  }),[props.activeElementRef,props.setActiveElement])
-
-  return <DragRefProvider.Provider value={providerValue}>{
-    props.children
-  }</DragRefProvider.Provider>
-}
-
-const Canvas = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  min-width: 200px;
-  min-height: 200px;
-`
 
 const DraggableDiv = styled.div<Coordinates & Active>`
   position: absolute;
