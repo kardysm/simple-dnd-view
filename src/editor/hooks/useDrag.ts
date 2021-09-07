@@ -1,6 +1,7 @@
 import {useCallback, useRef, useState} from "react";
 import {Coordinates, ReactDragEvent} from "../helperTypes";
-import {useDragContext} from "./useDragContext";
+import {useGuardedContext} from "./useGuardedContext";
+import {DragContext} from "../contexts";
 
 export enum DragStatus {
   INACTIVE,
@@ -17,7 +18,7 @@ export const useDrag = (position: Coordinates, setPosition: (newPos: Coordinates
   const draggableRef = useRef<HTMLDivElement>()
   const lastMeaningfulEvent = useRef<ReactDragEvent>()
 
-  const {setActive: setActiveDraggable} = useDragContext();
+  const {setActive: setActiveDraggable} = useGuardedContext(DragContext);
 
   const handleDragStart = useCallback((e: ReactDragEvent) => {
     setActiveDraggable(draggableRef)
