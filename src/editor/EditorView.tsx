@@ -5,12 +5,13 @@ import React, {
   MutableRefObject, PropsWithChildren,
   ReactChildren, ReactElement, RefObject,
   useCallback, useContext,
-  useEffect,
+  useEffect, useMemo,
   useRef,
   useState
 } from "react"
 import { v4 as uuidv4, validate } from 'uuid'
 import styled from "styled-components";
+import {pipeline} from "stream";
 
 
 type Id = string & {readonly type: symbol}
@@ -46,22 +47,28 @@ enum DragStatus {
   ACTIVE
 }
 
+function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is ProviderValue {
+  if (!ctx){
+    throw new Error('Provider DragRefProvider provider is not present')
+  }
+}
+
 const Element = (props: ElementProps) => {
   const {id,x,y, highlight, onClick} = props;
 
   const [newX, setNewX] = useState(x);
   const [newY, setNewY] = useState(y);
 
-  const draggableRef = useRef<HTMLDivElement>(null)
-  const activeDragRef = useContext(DragRefProvider)
+  const draggableRef = useRef<HTMLDivElement>()
+  const lastMeaningfulEvent = useRef<HTMLDivElement>()
+  const dragContext = useContext(DragRefProvider)
+  existsDragRefProvider(dragContext);
+  const {setActive: setActiveDraggable} = dragContext;
   const [dragStatus, setDragStatus] = useState<DragStatus>(DragStatus.INACTIVE)
   const handleDragStart = useCallback(() => {
     setDragStatus(DragStatus.ACTIVE)
 
-    if (!activeDragRef || draggableRef.current === null){
-      return
-    }
-    activeDragRef.current = draggableRef.current
+    setActiveDraggable(draggableRef)
     console.log('set active')
   },[id])
   const handleDragMove = useCallback((event: MouseEvent) => {
@@ -69,6 +76,7 @@ const Element = (props: ElementProps) => {
       return
     }
     console.log(event)
+    if (event.pageX && event.pageY)
     //update delta
     // setNewX(delta => delta + event.movementX)
     // setNewY(delta => delta + event.movementY)
@@ -79,16 +87,14 @@ const Element = (props: ElementProps) => {
     //persist position
     //reset delta
     console.log('set inactive', e)
-    if (!activeDragRef){
-      return;
-    }
-    activeDragRef.current = undefined
-    setNewX(e.screenX)
-    setNewY(e.screenY)
+    setActiveDraggable(undefined)
+
+    setNewX(e.pageX)
+    setNewY(e.pageY)
     setDragStatus(DragStatus.INACTIVE)
   }, [id])
   return <Draggable
-    ref={draggableRef}
+    ref={(instance) => draggableRef.current = instance!}
     draggable
     key={id} x={newX} y={newY} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDrag={handleDragMove as any}>
     <figure>
@@ -134,31 +140,49 @@ export const EditorView = () => {
     setElements([...elements, nextElement])
   },[elements, setElements]);
 
-  const draggedRef = useRef<HTMLDivElement>();
+  const activeElement = useRef<HTMLDivElement>();
+
+  const setActiveElement = useCallback((ref: DragRef | undefined) => {
+    activeElement.current = ref?.current
+  },[])
 
   const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    if (!draggedRef.current){
+    if (!activeElement.current){
       return;
     }
-    draggedRef.current?.dispatchEvent(new MouseEvent('drag', event as unknown as MouseEventInit))
+    console.log(activeElement)
+    activeElement.current?.dispatchEvent?.(forgeDragEvent(event))
     event.preventDefault();
-  },[draggedRef])
+  },[activeElement])
 
   return <Canvas onDragOver={dispatchDragPosition}>
     <button onClick={addElement}>Add</button>
-    <DragProvider dragRef={draggedRef}>
+    <DragProvider activeElementRef={activeElement} setActiveElement={setActiveElement}>
       <Elements elements={elements}/>
     </DragProvider>
   </Canvas>
 }
 
+function forgeDragEvent(event: React.DragEvent<HTMLDivElement>) {
+  return new MouseEvent('drag', event as unknown as MouseEventInit)
+}
+
 type DragRef = MutableRefObject<HTMLDivElement|undefined>
-const DragRefProvider = createContext<DragRef | undefined>(undefined)
+interface ProviderValue {
+  active: DragRef,
+  setActive: (el: DragRef | undefined) => void
+}
+const DragRefProvider = createContext<ProviderValue | undefined>(undefined)
 interface DragProviderProps{
-  dragRef: DragRef
+  activeElementRef: DragRef,
+  setActiveElement: (el: DragRef | undefined) => void
 }
 const DragProvider = (props: PropsWithChildren<DragProviderProps>) => {
-  return <DragRefProvider.Provider value={props.dragRef}>{props.children}</DragRefProvider.Provider>
+  const providerValue = useMemo(() => ({
+    active: props.activeElementRef,
+    setActive: props.setActiveElement
+  }),[props.activeElementRef,props.setActiveElement])
+  return <DragRefProvider.Provider value={providerValue}>{props.children}</DragRefProvider.Provider>
 }
 
 const Canvas = styled.div`
