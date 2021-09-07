@@ -149,37 +149,51 @@ const Elements = (props: {elements: ElementData[]}) => {
   }</>
 
 }
-export const EditorView = () => {
 
+function createElement(elements: ElementData[]){
+  return {
+    id: generateId(),
+    initialX: (elements[elements.length-1]?.initialX ?? 0)+ 40,
+    initialY: (elements[elements.length-1]?.initialY ?? 0)+ 40
+  }
+}
+
+const useElements = () => {
   const [elements,setElements] = useState<ElementData[]>([])
   const addElement = useCallback(() => {
-    const nextElement = {
-      id: generateId(),
-      initialX: (elements[elements.length-1]?.initialX ?? 0)+ 40,
-      initialY: (elements[elements.length-1]?.initialY ?? 0)+ 40
-    }
+    const nextElement = createElement(elements)
     setElements([...elements, nextElement])
   },[elements, setElements]);
 
-  const activeElement = useRef<HTMLDivElement>();
+  return {elements, addElement}
+}
+export const EditorView = () => {
+  const {elements, addElement} = useElements();
 
+  return <DragCanvas>
+      <button onClick={addElement}>Add</button>
+      <Elements elements={elements}/>
+  </DragCanvas>
+}
+
+const DragCanvas = (props: PropsWithChildren<{}>) => {
+  const activeElement = useRef<HTMLDivElement>();
   const setActiveElement = useCallback((ref: DragRef | undefined) => {
     activeElement.current = ref?.current
   },[])
 
   const dispatchDragPosition: DragEventHandler<HTMLDivElement> = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    if (!activeElement.current){
-      return;
-    }
+      if (!activeElement.current){
+        return;
+      }
 
-    activeElement.current?.dispatchEvent?.(forgeDragEvent(event))
-    event.preventDefault();
-  },[activeElement])
+      activeElement.current?.dispatchEvent?.(forgeDragEvent(event))
+      event.preventDefault();
+    },[activeElement])
 
   return <Canvas onDragOver={dispatchDragPosition}>
-    <button onClick={addElement}>Add</button>
     <DragProvider activeElementRef={activeElement} setActiveElement={setActiveElement}>
-      <Elements elements={elements}/>
+      {props.children}
     </DragProvider>
   </Canvas>
 }
