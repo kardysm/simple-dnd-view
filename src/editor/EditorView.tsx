@@ -3,14 +3,14 @@ import {DragCanvas} from "./components/DragCanvas";
 import {useElements} from "./hooks";
 import {Elements} from "./components/Elements";
 import {FocusProvider} from "./components/FocusProvider";
+import {Nav} from "./components/Nav";
 
 export const EditorView = () => {
-  const {elements, addElement} = useElements();
+  const {elements, addElement, removeElement} = useElements();
 
   return <DragCanvas>
     <FocusProvider>
-      <button onClick={addElement}>Add</button>
-      <button onClick={removeActiveElement}>Remove</button>
+      <Nav addElement={addElement} removeElement={removeElement}/>
       <Elements elements={elements}/>
     </FocusProvider>
   </DragCanvas>

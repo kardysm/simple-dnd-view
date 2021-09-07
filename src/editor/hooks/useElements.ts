@@ -16,7 +16,13 @@ export const useElements = () => {
     setElements([...elements, nextElement])
   },[elements, setElements]);
 
-  return {elements, addElement}
+  const removeElement = useCallback((id: Id) => {
+    const result = elements.filter(element => element.id !== id)
+
+    setElements(result);
+  },[elements])
+
+  return {elements, addElement, removeElement}
 }
 
 const INITIAL_OFFSET = 40;
