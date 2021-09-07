@@ -134,10 +134,11 @@ const Elements = (props: {elements: ElementData[]}) => {
 }
 
 function createElement(elements: ElementData[]){
+  const lastEl = elements[elements.length-1];
   return {
     id: generateId(),
-    initialX: (elements[elements.length-1]?.initialX ?? 0)+ 40,
-    initialY: (elements[elements.length-1]?.initialY ?? 0)+ 40
+    initialX: (lastEl?.initialX ?? 0)+ 40,
+    initialY: (lastEl?.initialY ?? 0)+ 40
   }
 }
 
