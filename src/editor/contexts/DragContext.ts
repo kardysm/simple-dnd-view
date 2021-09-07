@@ -1,9 +1,9 @@
 import {createContext} from "react";
 import {DragRef} from "../helperTypes";
 
-export interface ProviderValue {
+export interface DragContextValue {
   active: DragRef,
   setActive: (el: DragRef | undefined) => void
 }
 
-export const DragContext = createContext<ProviderValue | undefined>(undefined)
+export const DragContext = createContext<DragContextValue | undefined>(undefined)

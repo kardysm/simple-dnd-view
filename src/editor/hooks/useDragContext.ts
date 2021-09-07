@@ -1,4 +1,4 @@
-import {DragContext, ProviderValue} from "../contexts";
+import {DragContext, DragContextValue} from "../contexts";
 import {useContext} from "react";
 
 export const useDragContext = () => {
@@ -10,8 +10,8 @@ export const useDragContext = () => {
 
 }
 
-function existsDragRefProvider(ctx: ProviderValue | undefined): asserts ctx is ProviderValue {
+function existsDragRefProvider(ctx: DragContextValue | undefined): asserts ctx is DragContextValue {
   if (!ctx){
-    throw new Error('Provider DragRefProvider provider is not present')
+    throw new Error('Provider DragContext provider is not present')
   }
 }
