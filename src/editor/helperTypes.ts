@@ -10,3 +10,8 @@ export interface Coordinates {
 }
 
 export type Coordinate = number;
+
+export interface Active {
+  active?: boolean
+}
+
