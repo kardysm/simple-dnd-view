@@ -11,8 +11,8 @@ export const Element = (props: ElementProps) => {
   const {initialX,initialY, highlight, onClick} = props;
 
   return <Draggable initialX={initialX} initialY={initialY}>
-    <figure>
-      <ElementView highlight={highlight} onClick={onClick}/>
+    <figure onClick={onClick}>
+      <ElementView highlight={highlight}/>
     </figure>
   </Draggable>
 }

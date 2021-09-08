@@ -22,7 +22,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "cypress:open": "cypress open"
   },
   "eslintConfig": {
     "extends": [
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@types/styled-components": "^5.1.14",
-    "@types/uuid": "^8.3.1"
+    "@types/uuid": "^8.3.1",
+    "cypress": "^8.3.1"
   }
 }

@@ -2,9 +2,9 @@ import {fireEvent, render} from '@testing-library/react'
 import { EditorView } from './EditorView';
 
 describe('EditorView',()=>{
-  it('should add element on "add" button click', async function () {
+  it('should add one element on "add" button click', async function () {
     //arrange
-    const {getByRole, findAllByRole} = render(<EditorView/>)
+    const {getByRole, getAllByRole} = render(<EditorView/>)
 
     //assert
     const addButton = getByRole('button', {name: 'Add'})
@@ -13,17 +13,32 @@ describe('EditorView',()=>{
     fireEvent.click(addButton)
 
     //assert
-    const elements = await findAllByRole('figure')
-    expect(elements.length).toBe(1)
+    expect(getAllByRole('figure').length).toBe(1)
   });
 
-  it.skip('should remove highlighted element on "remove" button click', function () {
-
-  });
-
-  it.skip('should add 5 elements', async function () {
+  it('should remove active element on "remove" button click', function () {
     //arrange
-    const {getByRole, findAllByRole} = render(<EditorView/>)
+    const {getByRole} = render(<EditorView/>)
+
+    //assert
+    const addButton = getByRole('button', {name: 'Add'})
+
+    //act
+    fireEvent.click(addButton)
+
+    //arrange
+    const element = getByRole('figure');
+
+    //act
+    fireEvent.click(element)
+    fireEvent.click(getByRole('button',{name: 'Remove'}))
+
+    expect(element).not.toBeInTheDocument()
+  });
+
+  it('should add 5 elements', function () {
+    //arrange
+    const {getByRole, getAllByRole} = render(<EditorView/>)
 
     //assert
     const addButton = getByRole('button', {name: 'Add'})
@@ -36,9 +51,7 @@ describe('EditorView',()=>{
     fireEvent.click(addButton)
 
     //assert
-    const elements = await findAllByRole('figure')
-    expect(elements.length).toBe(5)
+    expect(getAllByRole('figure').length).toBe(5)
   });
-
 
 })
