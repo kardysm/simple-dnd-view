@@ -1,5 +1,5 @@
 import {createContext} from "react";
-import {Id} from "../../utils";
+import {Id} from "../utils";
 
 export interface FocusContextValue {
   focused: Id | null,

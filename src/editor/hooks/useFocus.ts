@@ -1,7 +1,7 @@
-import {useGuardedContext} from "./useGuardedContext";
 import {FocusContext} from "../contexts";
 import {useCallback} from "react";
-import {Id} from "../../utils";
+import {Id} from "../utils";
+import {useGuardedContext} from "./useGuardedContext";
 
 export const useFocus = () => {
   const {focused, setFocused} = useGuardedContext(FocusContext)

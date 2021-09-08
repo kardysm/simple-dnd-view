@@ -1,5 +1,5 @@
 import {useCallback, useState} from "react";
-import {generateId, Id} from "../../utils";
+import {generateId, Id} from "../utils";
 import {Coordinate} from "../helperTypes";
 
 export interface ElementData {
